@@ -1,0 +1,35 @@
+# This is based on how the docker examples where setup in https://crates.io/crates/cargo-chef
+# It does not actually work for caching.
+# If there are any changes, the deps are rebuilt.
+# Also, sometimes even with no changes at all caching fails.
+
+FROM rust:1.49-slim-buster
+WORKDIR /earthbuild
+
+install-chef:
+    # Installing in debug just to make this run faster for sample.
+    RUN cargo install --debug cargo-chef
+
+prepare-cache:
+    FROM +install-chef
+    COPY --dir bin lib_a lib_b lib_c Cargo.lock Cargo.toml ./
+    RUN cargo chef prepare
+    SAVE ARTIFACT recipe.json
+
+build-cache:
+    FROM +install-chef
+    COPY +prepare-cache/recipe.json ./
+    RUN cargo chef cook
+    SAVE ARTIFACT target
+    SAVE ARTIFACT $CARGO_HOME cargo_home
+
+build:
+    COPY --dir bin lib_a lib_b lib_c Cargo.lock Cargo.toml ./
+    COPY +build-cache/target target 
+    COPY +build-cache/cargo_home $CARGO_HOME
+    RUN cargo build
+    RUN cargo test --no-run
+
+test:
+    FROM +build
+    RUN cargo test
