@@ -15,4 +15,4 @@ but then realize it is the same as the last version and use caching from then on
 
 To test when caching should work, modify any `.rs` file.\
 To test when caching shouldn't work, modify a `Cargo.toml` file.\
-Not that if you don't change the deps or add a new target, even `Cargo.toml` changes should cache.\
+Note that if you don't change the deps or add a new target, even `Cargo.toml` changes should cache.
